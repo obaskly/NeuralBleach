@@ -35,7 +35,7 @@ Automatically strips all **EXIF**, **XMP**, and **C2PA** (Content Credentials) h
 
 1. Open [Google Colab](https://colab.research.google.com/).
 2. Change Runtime to **T4 GPU**.
-3. Copy/Paste the script from `neural_bleach.ipynb`.
+3. Copy/Paste the script from `neural_bleach.colab`.
 4. Run and upload your image.
 
 ---
