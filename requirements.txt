@@ -4,3 +4,4 @@ Pillow
 diffusers
 transformers
 accelerate
+opencv-python
