@@ -1,0 +1,6 @@
+torch
+numpy
+Pillow
+diffusers
+transformers
+accelerate
