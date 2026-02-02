@@ -95,4 +95,4 @@ https://github.com/user-attachments/assets/639432a4-56c5-4f18-91bf-30915d56817e
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for more information.
+Distributed under the MIT License.
