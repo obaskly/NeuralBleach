@@ -8,7 +8,7 @@ Unlike traditional LSB tools that just "scrub bits," NeuralBleach uses **Generat
 
 ---
 
-## 🚀 Features
+## Features
 
 ### 1. The "Launder" Protocol (Signal Disruption)
 
@@ -29,7 +29,7 @@ Automatically strips all **EXIF**, **XMP**, and **C2PA** (Content Credentials) h
 
 ---
 
-## ⚡ Quick Start (Google Colab)
+## Quick Start (Google Colab)
 
 **Don't have a GPU?** Run Neural-Bleach in the cloud for free.
 
@@ -64,7 +64,7 @@ python neural_bleach.py image.png --strength 0.25 --out output_image.jpg
 
 ---
 
-## 🧠 Technical Pipeline
+## Technical Pipeline
 
 | Stage | Process | Technical Goal |
 | --- | --- | --- |
@@ -82,6 +82,12 @@ This tool is intended for cybersecurity research, CTF (Capture The Flag) competi
 
 ---
 
-## 📜 License
+## POC
+
+https://github.com/user-attachments/assets/639432a4-56c5-4f18-91bf-30915d56817e
+
+---
+
+## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
