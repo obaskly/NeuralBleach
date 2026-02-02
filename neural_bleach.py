@@ -33,7 +33,7 @@ def stego_washer_ultimate(image_path, output_filename=None, strength=0.25):
             torch_dtype=torch.float16 if device == "cuda" else torch.float32
         )
         
-        # LOAD REALISTIC VISION V5.1 (The "Face Saver")
+        # LOAD REALISTIC VISION V5.1
         model_id = "SG161222/Realistic_Vision_V5.1_noVAE"
         print(f"[*] Loading High-Fidelity Model: {model_id}...")
         
@@ -75,7 +75,6 @@ def stego_washer_ultimate(image_path, output_filename=None, strength=0.25):
         print(f"[*] AI Laundering (Strength: {strength})...")
         
         prompt = "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
-        # The optimized, short negative prompt (Under 77 tokens)
         negative_prompt = "cgi, 3d, cartoon, anime, text, bad anatomy, deformed iris, deformed pupils, extra fingers, mutated hands, poorly drawn face, mutation, disfigured, blurry, missing limbs, fused fingers, ugly, long neck"
         
         # Suppress progress bar slightly for cleaner CLI
