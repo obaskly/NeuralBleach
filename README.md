@@ -35,7 +35,7 @@ Automatically strips all **EXIF**, **XMP**, and **C2PA** (Content Credentials) h
 
 1. Open [Google Colab](https://colab.research.google.com/).
 2. Change Runtime to **T4 GPU**.
-3. Copy/Paste the script from `neural_bleach.py`.
+3. Copy/Paste the script from `neural_bleach.ipynb`.
 4. Run and upload your image.
 
 ---
@@ -47,8 +47,7 @@ If you have a GPU (NVIDIA RTX 3060 or better recommended), you can run this loca
 ### Prerequisites
 
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-pip install diffusers transformers accelerate numpy Pillow
+pip install -r requirements.txt
 
 ```
 
