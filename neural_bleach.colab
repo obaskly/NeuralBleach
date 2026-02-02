@@ -22,8 +22,7 @@ def stego_washer_ultimate(image_path, output_filename="final_clean_ultimate.jpg"
         torch_dtype=torch.float16
     )
     
-    # LOAD REALISTIC VISION V5.1 (The "Face Saver")
-    # This model is specifically trained to fix the "bad eyes/face" problem.
+    # LOAD REALISTIC VISION V5.1
     model_id = "SG161222/Realistic_Vision_V5.1_noVAE"
     print(f"[*] Loading High-Fidelity Model: {model_id}...")
     
