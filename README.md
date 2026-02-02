@@ -54,13 +54,11 @@ pip install -r requirements.txt
 ### Usage
 
 ```python
-from neural_bleach import stego_washer
-
 # Basic Usage (Default Strength 0.15)
-stego_washer("my_flagged_image.png")
+python neural_bleach.py image.png
 
 # Aggressive Mode (If watermark persists)
-stego_washer("my_flagged_image.png", strength=0.25, output_filename="clean_aggressive.jpg")
+python neural_bleach.py image.png --strength 0.25 --out output_image.jpg
 
 ```
 
