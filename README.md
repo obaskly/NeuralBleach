@@ -4,27 +4,26 @@
 
 **NeuralBleach** is an advanced steganography removal suite designed to defeat robust, frequency-domain AI watermarks (like Google SynthID, Nano Banana, and invisible latent signatures).
 
-Unlike traditional LSB tools that just "scrub bits," NeuralBleach uses **Generative Adversarial Laundering**—it forces the image through a secondary neural network (Stable Diffusion) to hallucinate a mathematically new pixel structure while preserving the visual semantic content.
+Unlike traditional LSB tools that destroy image quality to remove data, NeuralBleach uses **Generative Adversarial Laundering** with **Structural Locking**. It forces the image through a secondary neural network to hallucinate a mathematically new pixel structure while strictly preserving the visual semantic content (faces, text, and logos).
 
 ---
 
 ## Features
 
 ### 1. The "Launder" Protocol (Signal Disruption)
+Uses **Realistic Vision V5.1** (a photorealistic finetune of Stable Diffusion) to "re-dream" the image pixels.
+* **Why:** Robust watermarks rely on specific pixel-grid coherence. By regenerating the image with a `strength` of 0.20 - 0.25, we force a new noise distribution that overwrites the original hidden signal without the "potato face" distortion of older models.
 
-Uses **Stable Diffusion v1.5** (img2img) to "re-dream" the image.
+### 2. ControlNet "Structure Lock"
+Standard AI tools destroy text and small details. NeuralBleach uses **ControlNet (Canny Edge Detection)** to create a "wireframe" of your image before processing.
+* **Result:** The AI is forced to paint *inside the lines*. Text remains readable, logos stay sharp, and faces maintain their identity, even while the invisible pixel data is scrubbed.
 
-* **Why:** Robust watermarks rely on specific pixel-grid coherence. By regenerating the image with a `strength` of 0.15, we force a new noise distribution that overwrites the original hidden signal.
-
-### 2. The "Analog" Humanizer (Visual Spoofing)
-
+### 3. The "Analog" Humanizer (Visual Spoofing)
 Detectors don't just look for code; they look for "digital perfection." This module injects physical camera imperfections:
-
 * **Chromatic Aberration:** Micro-shifts Red/Blue channels at the edges to simulate lens light refraction.
 * **Film Grain Simulation:** Adds ISO-400 equivalent luminance noise to break the "AI smoothness."
 
-### 3. Metadata Nuke
-
+### 4. Metadata Nuke
 Automatically strips all **EXIF**, **XMP**, and **C2PA** (Content Credentials) headers, ensuring no digital signature remains in the file container.
 
 ---
@@ -54,7 +53,7 @@ pip install -r requirements.txt
 ### Usage
 
 ```python
-# Basic Usage (Default Strength 0.15)
+# Basic Usage (Default Strength 0.20)
 python neural_bleach.py image.png
 
 # Aggressive Mode (If watermark persists)
@@ -68,10 +67,11 @@ python neural_bleach.py image.png --strength 0.25 --out output_image.jpg
 
 | Stage | Process | Technical Goal |
 | --- | --- | --- |
-| **0. Pre-Processing** | `LANCZOS` Resizing | Break rigid grid alignment. |
-| **1. Diffusion** | `SD v1.5 img2img` | Overwrite frequency-domain watermarks (DCT/Wavelet). |
-| **2. Humanization** | `np.roll` + `Gaussian Noise` | Defeat visual "smoothness" classifiers. |
-| **3. Sterilization** | `Image.save(quality=95)` | Strip C2PA/Metadata & Header signatures. |
+| **0. Pre-Processing** | `LANCZOS` Upscale (1.2x) | Increase pixel density for better facial reconstruction. |
+| **1. Wireframing** | `OpenCV Canny` | Create a structural map to lock text & edges. |
+| **2. Laundering** | `Realistic Vision` + `ControlNet` | Overwrite frequency-domain watermarks while respecting the wireframe. |
+| **3. Humanization** | `np.roll` + `Gaussian Noise` | Defeat visual "smoothness" classifiers. |
+| **4. Sterilization** | `Image.save(quality=95)` | Strip C2PA/Metadata & Header signatures. |
 
 ---
 
