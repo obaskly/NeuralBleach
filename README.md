@@ -2,9 +2,7 @@
 
 > **"If the pixels can dream, they can be made to forget."**
 
-**NeuralBleach** is an advanced steganography removal suite designed to defeat robust, frequency-domain AI watermarks (like Google SynthID, Nano Banana, and invisible latent signatures).
-
-Unlike traditional LSB tools that destroy image quality to remove data, NeuralBleach uses **Generative Adversarial Laundering** with **Structural Locking**. It forces the image through a secondary neural network to hallucinate a mathematically new pixel structure while strictly preserving the visual semantic content (faces, text, and logos).
+**NeuralBleach** is a proof-of-concept utility for bypassing frequency-domain watermarking. NeuralBleach leverages a generative diffusion pipeline to overwrite hidden signatures by regenerating high-frequency noise. Unlike standard denoising tools, it employs edge-detection (ControlNet) to maintain semantic integrity during the reconstruction process.
 
 ---
 
