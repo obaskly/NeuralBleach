@@ -1,91 +1,108 @@
 import os
 from google.colab import files
 
-print("[*] Installing AI & Image Processing Libraries...")
-!pip install -q diffusers transformers accelerate torch numpy Pillow
+print("[*] Installing Libraries...")
+!pip install -q diffusers transformers accelerate torch numpy Pillow opencv-python
 
 import torch
 import numpy as np
-from diffusers import StableDiffusionImg2ImgPipeline
+import cv2
+from diffusers import StableDiffusionControlNetImg2ImgPipeline, ControlNetModel
 from PIL import Image
 
-def stego_washer(image_path, output_filename="final_clean_result.jpg", strength=0.15):
-    print(f"\n--- PROCESSING: {image_path} ---")
+def stego_washer_ultimate(image_path, output_filename="final_clean_ultimate.jpg", strength=0.25):
+    print(f"\n--- PROCESSING (ULTIMATE MODE): {image_path} ---")
     
-    # We use Stable Diffusion v1.5 to re-render the pixels.
     device = "cuda"
-    print("Loading Neural Network (Stable Diffusion v1.5)...")
-    pipe = StableDiffusionImg2ImgPipeline.from_pretrained(
-        "runwayml/stable-diffusion-v1-5", 
+    
+    # LOAD CONTROLNET (Structure Lock)
+    print("[*] Loading ControlNet (Canny)...")
+    controlnet = ControlNetModel.from_pretrained(
+        "lllyasviel/sd-controlnet-canny", 
+        torch_dtype=torch.float16
+    )
+    
+    # LOAD REALISTIC VISION V5.1 (The "Face Saver")
+    # This model is specifically trained to fix the "bad eyes/face" problem.
+    model_id = "SG161222/Realistic_Vision_V5.1_noVAE"
+    print(f"[*] Loading High-Fidelity Model: {model_id}...")
+    
+    pipe = StableDiffusionControlNetImg2ImgPipeline.from_pretrained(
+        model_id,
+        controlnet=controlnet,
         torch_dtype=torch.float16,
-        safety_checker=None # Disable safety checker to prevent false flags on normal images
+        safety_checker=None
     ).to(device)
     
-    # LOAD & PREPARE IMAGE
+    pipe.enable_attention_slicing()
+    
+    # PREPARE IMAGE & UPSCALE (Critical for Faces)
     original_img = Image.open(image_path).convert("RGB")
     w, h = original_img.size
     
-    # Resize to nearest multiple of 8 (requirement for AI models)
-    # We keep the resolution high to preserve quality
-    new_w = (w // 8) * 8
-    new_h = (h // 8) * 8
-    img_input = original_img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    # We slightly upscale the image (1.2x) before processing.
+    # More pixels = Better eyes/faces for the AI to work with.
+    target_w = int(w * 1.2)
+    target_h = int(h * 1.2)
+    
+    # Snap to multiples of 8
+    target_w = (target_w // 8) * 8
+    target_h = (target_h // 8) * 8
+    
+    img_input = original_img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+    
+    # EDGE DETECTION
+    print("[*] Extracting structural wireframe...")
+    image_cv = np.array(img_input)
+    # Lower thresholds to catch more facial details
+    canny_image = cv2.Canny(image_cv, 50, 200)
+    canny_image = canny_image[:, :, None]
+    canny_image = np.concatenate([canny_image, canny_image, canny_image], axis=2)
+    control_image = Image.fromarray(canny_image)
     
     # LAUNDERING
-    print(f"AI Laundering (Strength: {strength})...")
-    print("    -> Re-generating pixel structure to overwrite hidden signals.")
+    print(f"[*] AI Laundering (Strength: {strength})...")
     
-    # We use a neutral prompt to ensure the image content doesn't change
-    prompt = "high quality, realistic, sharp focus, 8k photograph"
-    negative_prompt = "blur, watermark, text, low quality, cartoon, distortion, ugly"
+    # Specific prompts that trigger Realistic Vision's high quality mode
+    prompt = "RAW photo, subject, 8k uhd, dslr, soft lighting, high quality, film grain, Fujifilm XT3"
+    # Negative prompts specific to Realistic Vision to prevent deformations
+    negative_prompt = "cgi, 3d, cartoon, anime, text, bad anatomy, deformed iris, deformed pupils, extra fingers, mutated hands, poorly drawn face, mutation, disfigured, blurry, missing limbs, fused fingers, ugly, long neck"
     
     laundered_img = pipe(
-        prompt=prompt, 
-        image=img_input, 
-        strength=strength, # 0.15 is the "Sweet Spot"
-        guidance_scale=7.5,
+        prompt=prompt,
+        image=img_input,
+        control_image=control_image,
+        strength=strength, 
+        controlnet_conditioning_scale=1.0,
+        guidance_scale=5.0, # Lower guidance allows more natural lighting (RealVis prefers 5-7)
         negative_prompt=negative_prompt
     ).images[0]
     
-    # ANALOG HUMANIZATION
-    print("Analog Simulation (Grain & Lens Shift)...")
+    # ANALOG HUMANIZATION (Preserves visual trickery)
+    print("[*] Applying Analog Simulation...")
+    # Resize back to original size first
+    laundered_img = laundered_img.resize((w, h), Image.Resampling.LANCZOS)
     
-    # Chromatic Aberration
     r, g, b = laundered_img.split()
-    r_data = np.array(r)
-    b_data = np.array(b)
+    # Very subtle chromatic aberration
+    r = Image.fromarray(np.roll(np.array(r), -1, axis=1)) 
+    b = Image.fromarray(np.roll(np.array(b), 1, axis=1))
+    humanized_img = Image.merge("RGB", (r, g, b))
     
-    # Shift Red channel left by 1 pixel, Blue right by 1 pixel 
-    r_shifted = np.roll(r_data, -1, axis=1) 
-    b_shifted = np.roll(b_data, 1, axis=1)
-    
-    # Merge back
-    humanized_img = Image.merge("RGB", (Image.fromarray(r_shifted), g, Image.fromarray(b_shifted)))
-    
-    # Film Grain (Luminance Noise)
+    # Subtle Grain
     img_array = np.array(humanized_img).astype(np.float32)
-    noise = np.random.normal(0, 6, img_array.shape).astype(np.float32) # Sigma 6 
-    
-    noisy_img = img_array + noise
-    noisy_img = np.clip(noisy_img, 0, 255).astype(np.uint8)
-    final_img = Image.fromarray(noisy_img)
+    noise = np.random.normal(0, 4, img_array.shape).astype(np.float32)
+    final_img = Image.fromarray(np.clip(img_array + noise, 0, 255).astype(np.uint8))
 
-    # METADATA STRIP & RESTORE
-    final_img = final_img.resize((w, h), Image.Resampling.LANCZOS)
-    
-    print("Stripping Metadata & Saving...")
-    # Saving as a NEW JPEG automatically discards the original PNG/C2PA metadata chunks
+    # SAVE
     final_img.save(output_filename, "JPEG", quality=95, optimize=True)
-    
-    print(f"\n[+] SUCCESS! File saved as: {output_filename}")
-    print("    -> Download it from the Files tab on the left.")
+    print(f"\n[+] SUCCESS! Saved as: {output_filename}")
 
-# EXECUTION ---
-# Upload file
+# --- EXECUTION ---
 print("Please upload your image:")
 uploaded = files.upload()
 filename = list(uploaded.keys())[0]
 
-# Run the unified script
-# If the watermark persists, increase strength to 0.20
-stego_washer(filename, strength=0.15)
+# Run Ultimate Mode
+# 0.25 strength is safe now because Realistic Vision respects faces much better
+stego_washer_ultimate(filename, strength=0.20)
